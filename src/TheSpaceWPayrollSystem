@@ -1,0 +1,319 @@
+import java.util.DoubleSummaryStatistics;
+import java.util.Scanner;
+
+/**
+ * Created by Administrator on 2020/5/1.
+ */
+public class PayrollCalculator {
+
+	public static final double YEARLY_SALARY_TE = 32213;
+	public static final double YEARLY_SALARY_ES = 64215;
+	public static final double YEARLY_SALARY_SE2 = 123799;
+	public static final double YEARLY_SALARY_PW = 67003.29;
+	public static final double YEARLY_SALARY_BIP = 98317;
+
+	public static final double BONUS_LPDAY = 127;
+	public static final double BONUS_LPDAYF = 214.29;
+	public static final double BONUS_ORB = 600;
+	public static final double BONUS_FLTIME = 297.50;//Maximun 8 days
+	public static int padDays, padDaysFuel, spaceDays, flightDays;
+	public static double travelAllowance;
+
+
+	//travel allowances need to be input
+	//	public static final double BONUS_TA = ;
+
+	public static Scanner scanner = new Scanner(System.in);
+
+	public static void main(String[] args) {
+		
+		System.out.println("Assignment 1 2020 SpaceW payroll estimator");
+		System.out.println();
+		
+		while (true) {
+			System.out.println();
+			System.out.println(">>>>>>>>>>>Main menu>>>>>>>>>>>");
+			System.out.println();
+			System.out.println("0 - Exit");
+			System.out.println("1 - Compute pay for Engineer Scientist");
+			System.out.println("2 - Compute pay for Pad Worker");
+			System.out.println("3 - Compute pay for Astronaut");
+			System.out.println("4 - (Debug tax routine - fortnightly)");
+			System.out.println("5 - (Debug tax routine - monthly)");
+			System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+			System.out.print("Enter selection 0-5:");
+			System.out.print("");
+
+			int commandNum = parseAndCheckInput();
+
+			if (commandNum == 0) {
+				System.out.println(" -- Program Ending -- ");
+				System.exit(0);
+			} else if (commandNum == 1) {
+				// 1 - Compute pay for Engineer Scientist
+				computePayForENGS();
+			} else if (commandNum == 2) {
+				// 2 - Compute pay for Pad Worker
+				computePayforPadworker();
+			} else if (commandNum == 3) {
+				// 3 - Compute pay for Astronaut
+				computePayforAstonaut();
+			} else if (commandNum == 4) {
+				// 4 - (Debug tax routine - fortnightly)
+				debugTaxFortnightlyRoutine();
+			} else if (commandNum == 5) {
+				// 5 - (Debug tax routine - monthly)
+				debugTaxMonthlyRoutine();
+			} else {// illegal input: -1
+				continue;
+			}
+
+		}
+	}
+
+	/**
+	 * Compute pay for Engineers and Scientists (ENGS)
+	 */
+	public static void computePayForENGS() {
+		System.out.println();
+		System.out.println("Compute Pay for Engineer/Scientist");
+		System.out.println();
+		System.out.println("Enter pay category(TE/ES/ES2) :");
+
+		String category = scanner.next();
+		if (category.equals("TE") || category.equals("te")) {
+			System.out.println();
+			System.out.println("Months Gross Pay  :       " + String.format("%7.2f",YEARLY_SALARY_TE / 12)+"\t");
+			System.out.println("Months Tax        :       " + String.format("%7.2f",Math.floor(computeYearlyTax(YEARLY_SALARY_TE) / 12)) + "\t");
+			System.out.println("                  :  ------------" + "\t");
+			System.out.println("Months Net  pay   :       " + String.format("%7.2f",((YEARLY_SALARY_TE / 12) - Math.floor(computeYearlyTax(YEARLY_SALARY_TE) / 12))) + "\t");
+		} else if (category.equals("ES") || category.equals("es")) {
+			System.out.println();
+			System.out.println("Months Gross Pay  :       " + String.format("%7.2f",YEARLY_SALARY_ES / 12));
+			System.out.println("Months Tax        :       " + String.format("%7.2f",Math.floor(computeYearlyTax(YEARLY_SALARY_ES) / 12)));
+			System.out.println("                  :  ------------");
+			System.out.println("Months Net  pay   :       " + String.format("%7.2f",((YEARLY_SALARY_ES / 12) - Math.floor(computeYearlyTax(YEARLY_SALARY_ES) / 12))));
+		} else if (category.equals("es2") || category.equals("ES2")) {
+			System.out.println();
+			System.out.println("Months Gross Pay  :      " + String.format("%7.2f",YEARLY_SALARY_SE2 / 12));
+			System.out.println("Months Tax        :       " + String.format("%7.2f",Math.floor(computeYearlyTax(YEARLY_SALARY_SE2) / 12)) + "\t");
+			System.out.println("                  :  ------------" + "\t");
+			System.out.println("Months Net  pay   :       " + String.format("%7.2f",((YEARLY_SALARY_SE2 / 12) - Math.floor(computeYearlyTax(YEARLY_SALARY_SE2) / 12))) + "\t");
+		} else {
+			System.out.println("Error!!- Category not found");
+		}
+
+	}
+
+	/*
+	 *  Compute Pay For PadWorker
+	 *
+	 */
+	public static void computePayforPadworker() {
+		System.out.println();
+		System.out.println("Compute Pay for Pad Worker");
+		System.out.println("--------------------------");
+		System.out.println();
+
+		try {
+			System.out.print("Enter pad days     :");
+			padDays = scanner.nextInt();
+			System.out.print("Enter pad days Fuel:");
+			padDaysFuel = scanner.nextInt();
+			if (padDays < 0) {
+				throw new Exception("Something wrong");
+			} else if (padDays > 14) {
+				throw new Exception("Something wrong");
+			}
+			if (padDaysFuel < 0) {
+				throw new Exception("Something wrong");
+			} else if (padDaysFuel > 14) {
+				throw new Exception("Something wrong");
+			}
+			System.out.println();
+			System.out.println("Fortnight Base Salary   :       " + String.format("%7.2f", (YEARLY_SALARY_PW / 365 * 14 + padDays * BONUS_LPDAY + padDaysFuel * BONUS_LPDAYF)) + "\t");
+			System.out.println("Fortnight Pad Days pay  :       " + String.format("%7.2f", padDays * BONUS_LPDAY) + "\t");
+			System.out.println("Fortnight Pad Days Fuel :       " + String.format("%7.2f", padDaysFuel * BONUS_LPDAYF) + "\t");
+			System.out.println("Fortnight Gross pay     :       " + String.format("%7.2f", (YEARLY_SALARY_PW / 365 * 14 + padDays * BONUS_LPDAY + padDaysFuel * BONUS_LPDAYF)) + "\t");
+			System.out.println("Fortnight Tax           :       " + String.format("%7.2f", Math.floor((computeYearlyTax((YEARLY_SALARY_PW / 365 * 14 + padDays * BONUS_LPDAY + padDaysFuel * BONUS_LPDAYF) / 14 * 365)) * 14 / 365)));
+			System.out.println("                        :  ------------" + "\t");
+			System.out.println("Fortnight Net  pay      :       " + String.format("%7.2f", ((YEARLY_SALARY_PW / 365 * 14 + padDays * BONUS_LPDAY + padDaysFuel * BONUS_LPDAYF) - Math.floor((computeYearlyTax((YEARLY_SALARY_PW / 365 * 14 + padDays * BONUS_LPDAY + padDaysFuel * BONUS_LPDAYF) / 14 * 365)) * 14 / 365))) + "\t");
+
+		} catch (Exception e) {
+			System.out.println();
+			System.out.println("Error!! - Value to high Invalid Pad days value");
+		}
+	}
+
+	/*
+	 * compute pay for Astronaut
+	 */
+
+	public static void computePayforAstonaut() {
+		System.out.println();
+		System.out.println("Compute Pay for Astronaut");
+		System.out.println("--------------------------");
+		System.out.println();
+		try {
+			System.out.print("Enter Space days       :");
+			spaceDays = scanner.nextInt();
+			System.out.print("Enter Flight days      :");
+			flightDays = scanner.nextInt();
+			System.out.print("Enter Travel Allowance :");
+			travelAllowance = scanner.nextDouble();
+			if (flightDays < 0) {
+				throw new Exception("Something wrong");
+			} else if (flightDays > 8) {
+				throw new Exception("Something wrong");
+			} else if (travelAllowance < 0) {
+				throw new Exception("Something wrong");
+			} else if (travelAllowance > 10000) {
+				throw new Exception("Something wrong");
+			} else if (spaceDays < 0) {
+				throw new Exception("Something wrong");
+			} else if (spaceDays > 14) {
+				throw new Exception("Something wrong");
+			}
+			System.out.println();
+			System.out.println("Fortnight Base Salary   :       " + String.format("%7.2f", (YEARLY_SALARY_BIP / 365 * 14)) + "\t");
+			System.out.println("Fortnight Space Days pay:       " + String.format("%7.2f", spaceDays * BONUS_ORB) + "\t");
+			System.out.println("Fortnight Flight Pay    :       " + String.format("%7.2f", flightDays * BONUS_FLTIME) + "   (                 " + String.format("%7.2f", flightDays * BONUS_FLTIME * 0.88) + " ,        " + String.format("%7.2f", flightDays * BONUS_FLTIME * 0.12) + ")");
+			System.out.println("Fortnight Gross pay     :       " + String.format("%7.2f", (YEARLY_SALARY_BIP / 365 * 14 + spaceDays * BONUS_ORB + flightDays * BONUS_FLTIME * 0.88)));
+			System.out.println("Fortnight Tax           :       " + String.format("%7.2f", Math.floor((computeYearlyTax((YEARLY_SALARY_BIP / 365 * 14 + spaceDays * BONUS_ORB + flightDays * BONUS_FLTIME * 0.88) / 14 * 365)) * 14 / 365)));
+			System.out.println("                        :  ------------" + "\t");
+			System.out.println("Fortnight Net   pay     :       " + String.format("%7.2f", ((YEARLY_SALARY_BIP / 365 * 14 + spaceDays * BONUS_ORB + flightDays * BONUS_FLTIME + travelAllowance) - Math.floor((computeYearlyTax((YEARLY_SALARY_BIP / 365 * 14 + spaceDays * BONUS_ORB + flightDays * BONUS_FLTIME * 0.88) / 14 * 365)) * 14 / 365))) + "\t");
+
+		} catch (Exception e) {
+			System.out.println();
+			System.out.println("Error!! - Value to high Invalid allowance,days value");
+		}
+	}
+
+	/**
+	 * parse and check input whether is legal or not
+	 * 
+	 * @param scanner
+	 * @return
+	 */
+	public static int parseAndCheckInput() {
+
+		int num = -1;
+
+		// legal or not
+		try {
+			num = scanner.nextInt();
+		} catch (Exception e) {
+			System.out.println("Input Format Error!! - Please select 0 to 5");
+			return -1;
+		}
+
+		// between 0 to 5
+		if (num < 0 || num > 5)
+			return -1;
+
+		return num;
+	}
+	
+	public static double computeYearlyTax(double yearlySalary){
+		
+		double tax = 0;
+		
+		if(yearlySalary<=18200){
+			tax = 0;
+		}else if(yearlySalary<=37000){
+			tax = (yearlySalary - 18200)*0.19;
+		}else if(yearlySalary<=90000){
+			tax = 3572 + (yearlySalary - 37000)*0.325;
+		}else if(yearlySalary<=180000){
+			tax = 20797 + (yearlySalary - 90000)*0.37;
+		}else{
+			tax = 54096 + (yearlySalary - 180000)*0.45;
+		}
+		
+		return Math.floor(tax);
+	}
+
+	public static double computeYearlyTax1(double yearlySalary){
+
+		double tax = 0;
+
+		if(yearlySalary<=18200){
+			tax = 0;
+		}else if(yearlySalary<=37000){
+			tax = (yearlySalary - 18200)*0.19;
+		}else if(yearlySalary<=90000){
+			tax = 3572 + (yearlySalary - 37000)*0.325;
+		}else if(yearlySalary<=180000){
+			tax = 20797 + (yearlySalary - 90000)*0.37;
+		}else{
+			tax = 54096 + (yearlySalary - 180000)*0.45;
+		}
+
+		return tax;
+	}
+	
+	public static double computeTaxFortnightly(double fortnightSalary){
+		
+		double fortnightlyTax = 0;
+		
+		double dailySalary = fortnightSalary / 14;
+		double yearlySalary = dailySalary * 365 ;
+		
+		double yearlyTax = computeYearlyTax(yearlySalary);
+		
+		fortnightlyTax = Math.floor(yearlyTax*14/365);
+		
+		return fortnightlyTax;
+	}
+	
+	public static void debugTaxFortnightlyRoutine(){
+		System.out.print("Enter fortnightly pay amount: ");
+		
+		double fortnightSalary = 0;
+		
+		try{
+			fortnightSalary = scanner.nextDouble();
+		}catch(Exception e){
+			System.out.println("Input Format Error!! - Please input a double");
+			return;
+		}
+		
+		double tax = computeTaxFortnightly(fortnightSalary);
+		System.out.println("yr = " + fortnightSalary / 14 * 365);
+		System.out.println("salary = " + fortnightSalary + "  tax is:" + String.format("%.3f", computeYearlyTax1(fortnightSalary / 14 * 365)) + " (" +  (int)Math.floor(computeYearlyTax(fortnightSalary / 14 * 365)) + ")");
+		System.out.println("Fortnightly tax is " + (int)tax);
+		System.out.println();
+	}
+	
+	
+	public static double computeTaxMonthly(double monthlySalary){
+		
+		double monthlyTax = 0;
+		
+		double yearlyIncome = 12* monthlySalary;
+		//System.out.println("Yearly Income is :" + yearlyIncome);
+		
+		double yearlyTax = computeYearlyTax(yearlyIncome);
+		
+		monthlyTax = Math.floor(yearlyTax/12);
+		
+		return monthlyTax;
+	}
+	
+	public static void debugTaxMonthlyRoutine(){
+		System.out.print("Enter monthly pay amount: ");
+		
+		double monthlySalary = 0;
+		
+		try{
+			monthlySalary = scanner.nextDouble();
+		}catch(Exception e){
+			System.out.println("Input Format Error!! - Please input a double");
+			return;
+		}
+		
+		double tax = computeTaxMonthly(monthlySalary);
+		System.out.print("salary = " + monthlySalary + "  tax is:" + String.format("%.3f", computeYearlyTax1(monthlySalary * 12)) + "   (" + (int)computeYearlyTax1(monthlySalary * 12) + ")    " + "Monthly tax:" + (int)tax);
+		System.out.println();
+	}
+}
